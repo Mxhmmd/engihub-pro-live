@@ -8,8 +8,28 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 require('dotenv').config();
 
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+
+
+// Serve React static files from client/build
+app.use(express.static(path.join(__dirname, 'client/build')));
+
+// API routes example
+app.get('/api/hello', (req, res) => {
+  res.json({ message: 'Hello from backend!' });
+});
+
+// Catch-all handler: send all other requests to React index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+});
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
 
 // Middleware
 app.use(cors());
