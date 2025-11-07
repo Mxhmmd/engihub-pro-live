@@ -1,4 +1,4 @@
-// server.js - Production Backend Server
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
@@ -6,7 +6,11 @@ const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-require('dotenv').config();
+
+// --- Import route files first ---
+const usersRoutes = require('./routes/users');
+const calculationsRoutes = require('./routes/calculations');
+const highScoreRoutes = require('./routes/high_score');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -15,11 +19,10 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// --- Mount route handlers ---
+// --- Mount route handlers after import ---
 app.use('/api/users', usersRoutes);
 app.use('/api/calculations', calculationsRoutes);
 app.use('/api/high_score', highScoreRoutes);
-
 
 // PostgreSQL Connection Pool
 const pool = new Pool({
@@ -30,26 +33,17 @@ const pool = new Pool({
   port: process.env.DB_PORT || 5432,
 });
 
-// --- Import route files ---
-const usersRoutes = require('./routes/users');
-const calculationsRoutes = require('./routes/calculations');
-const highScoreRoutes = require('./routes/high_score');
-
 // --- Add this root route ---
 app.get('/', (req, res) => {
   res.send('EngiHub Pro API is running!');
 });
-
-// Your other routes (e.g., /api/users, /api/calculations) go here
 
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-
-
-// Email Transporter (for verification emails)
+// Email Transporter
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
