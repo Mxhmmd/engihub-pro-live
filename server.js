@@ -23,6 +23,11 @@ app.get('/ping', (req, res) => {
   res.send('pong');
 });
 
+// --- Health check route ---
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date() });
+});
+
 
 // --- Mount route handlers after import ---
 app.use('/api/users', usersRoutes);
