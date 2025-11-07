@@ -93,46 +93,55 @@ const EngineeringApp = () => {
   });
 
 
-  useEffect(() => { 
+  useEffect(() => {
+  const loadUserProfile = async () => {
+    try {
+      const profile = await api.user.getProfile();
+      setCurrentUser(profile);
+      setIsLoggedIn(true);
+      setTheme(profile.theme_preference || 'dark');
+      loadCalculationHistory();
+    } catch (error) {
+      sessionStorage.removeItem('token');
+    }
+  };
+
   const token = sessionStorage.getItem('token');
   if (token) {
     loadUserProfile();
   }
+
   const savedTheme = localStorage.getItem('theme') || 'dark';
   setTheme(savedTheme);
-}, [loadUserProfile]);
+}, []);
 
 
   // ADD THIS NEW CODE HERE:
   useEffect(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get('token');
-  
-  if (token) {
-    window.history.replaceState({}, document.title, window.location.pathname);
-    handleEmailVerification(token);
-  }
-}, [handleEmailVerification]);
-
-
   const handleEmailVerification = async (token) => {
     setLoading(true);
     try {
-      console.log('Verifying token:', token); // Debug log
+      console.log('Verifying token:', token);
       const response = await api.auth.verifyEmail(token);
-      console.log('Verification response:', response); // Debug log
+      console.log('Verification response:', response);
       showNotification('Email verified successfully! You can now log in.', 'success');
-      // Clear the URL
-      window.history.replaceState({}, document.title, window.location.pathname);
       setShowAuthModal(true);
       setAuthMode('login');
     } catch (error) {
-      console.error('Verification error:', error); // Debug log
+      console.error('Verification error:', error);
       showNotification(`Email verification failed: ${error.message}`, 'error');
     } finally {
       setLoading(false);
+      // Clear URL
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   };
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+  if (token) handleEmailVerification(token);
+}, []); // no dependencies, function is now inside useEffect
+
   // END OF NEW CODE
 
 
@@ -1283,19 +1292,19 @@ const PongGame = ({ theme, onSaveScore }) => {
     ai: { x: 770, y: 250, width: 10, height: 100 }
   });
 
+  // Load leaderboard
   useEffect(() => {
-  loadLeaderboard();
-}, [loadLeaderboard]);
+    const loadLeaderboard = async () => {
+      try {
+        const data = await api.game.getLeaderboard(10);
+        setLeaderboard(data);
+      } catch (error) {
+        console.error('Failed to load leaderboard:', error);
+      }
+    };
+    loadLeaderboard();
+  }, []); // function is inside useEffect, no more warnings
 
-
-  const loadLeaderboard = async () => {
-    try {
-      const data = await api.game.getLeaderboard(10);
-      setLeaderboard(data);
-    } catch (error) {
-      console.error('Failed to load leaderboard:', error);
-    }
-  };
 
   useEffect(() => {
   if (!gameStarted || gameOver) return;
@@ -1354,26 +1363,26 @@ const PongGame = ({ theme, onSaveScore }) => {
 }, [gameStarted, gameOver, theme]);
 
 
-  const handleKeyDown = (e) => {
+    const handleKeyDown = useCallback((e) => {
     const state = gameStateRef.current;
     if (e.key === 'ArrowUp') state.player.dy = -6;
     if (e.key === 'ArrowDown') state.player.dy = 6;
-  };
+  }, []);
 
-  const handleKeyUp = (e) => {
+  const handleKeyUp = useCallback((e) => {
     const state = gameStateRef.current;
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') state.player.dy = 0;
-  };
+  }, []);
 
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [handleKeyDown, handleKeyUp]);
 
-useEffect(() => {
-  window.addEventListener('keydown', handleKeyDown);
-  window.addEventListener('keyup', handleKeyUp);
-  return () => {
-    window.removeEventListener('keydown', handleKeyDown);
-    window.removeEventListener('keyup', handleKeyUp);
-  };
-}, [handleKeyDown, handleKeyUp]);
 
 
   const resetGame = () => {
