@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Calculator, Zap, Box, Grid3x3, Gamepad2, User, Settings, Moon, Sun, Download, Save, History, Info, LogOut, Menu, X, Trophy, Upload } from 'lucide-react';
+import { Calculator, Zap, Box, Grid3x3, Gamepad2, User, Settings, Moon, Sun, Download, History, LogOut, Menu, X, Trophy } from 'lucide-react';
 import * as math from 'mathjs';
 
 // API Configuration
