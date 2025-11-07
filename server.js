@@ -24,6 +24,20 @@ const pool = new Pool({
   port: process.env.DB_PORT || 5432,
 });
 
+// --- Add this root route ---
+app.get('/', (req, res) => {
+  res.send('EngiHub Pro API is running!');
+});
+
+// Your other routes (e.g., /api/users, /api/calculations) go here
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+
+
 // Email Transporter (for verification emails)
 const transporter = nodemailer.createTransport({
   service: 'gmail',
