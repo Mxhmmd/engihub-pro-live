@@ -8,28 +8,8 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 require('dotenv').config();
 
-const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-
-
-// Serve React static files from client/build
-app.use(express.static(path.join(__dirname, 'client/build')));
-
-// API routes example
-app.get('/api/hello', (req, res) => {
-  res.json({ message: 'Hello from backend!' });
-});
-
-// Catch-all handler: send all other requests to React index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-});
-
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
 
 // Middleware
 app.use(cors());
@@ -59,7 +39,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 // Middleware to verify JWT token
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  let token = authHeader && authHeader.split(' ')[1]; // ✅ use let so we can modify it below
+
+  // ✅ Also check if token is passed as a query parameter
+  if (!token && req.query.token) {
+    token = req.query.token;
+  }
 
   if (!token) {
     return res.status(401).json({ error: 'Access token required' });
@@ -73,6 +58,7 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
 
 // ==================== AUTH ROUTES ====================
 
@@ -178,9 +164,9 @@ app.post('/api/auth/login', async (req, res) => {
     const user = result.rows[0];
 
     // Check if email is verified
-    //if (!user.email_verified) {
-      //return res.status(400).json({ error: 'Please verify your email first' });
-    //}
+    if (!user.email_verified) {
+      return res.status(400).json({ error: 'Please verify your email first' });
+    }
 
     // Verify password
     const validPassword = await bcrypt.compare(password, user.password_hash);
@@ -298,7 +284,7 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT user_id, username, email, theme_preference, created_at, last_login FROM users WHERE user_id = $1',
-      [req.user.user_id]
+      [req.user.id]
     );
 
     if (result.rows.length === 0) {
@@ -319,7 +305,7 @@ app.put('/api/user/preferences', authenticateToken, async (req, res) => {
   try {
     await pool.query(
       'UPDATE users SET theme_preference = $1 WHERE user_id = $2',
-      [theme, req.user.user_id]
+      [theme, req.user.id]
     );
 
     res.json({ message: 'Preferences updated successfully' });
@@ -336,10 +322,25 @@ app.post('/api/calculations', authenticateToken, async (req, res) => {
   const { module, type, inputs, result, metadata } = req.body;
 
   try {
+    
+    // Normalize and map module names to allowed DB values
+  let moduleNormalized = module.toLowerCase();
+
+  const moduleMap = {
+    'structural': 'structural',
+    'linear algebra': 'linalg',
+    'electrical': 'electrical',
+    'utilities': 'utilities'
+  };
+
+  // Fallback: if moduleNormalized exists in map, use mapped value
+  moduleNormalized = moduleMap[moduleNormalized] || moduleNormalized;
+
+
     const calcResult = await pool.query(
       `INSERT INTO calculations (user_id, module, type, inputs, result, metadata, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *`,
-      [req.user.user_id, module, type, JSON.stringify(inputs), result, JSON.stringify(metadata)]
+      [req.user.id, moduleNormalized, type, JSON.stringify(inputs), result, JSON.stringify(metadata)]
     );
 
     res.status(201).json(calcResult.rows[0]);
@@ -360,12 +361,12 @@ app.get('/api/calculations/history', authenticateToken, async (req, res) => {
        WHERE user_id = $1 
        ORDER BY created_at DESC 
        LIMIT $2 OFFSET $3`,
-      [req.user.user_id, limit, offset]
+      [req.user.id, limit, offset]
     );
 
     const countResult = await pool.query(
       'SELECT COUNT(*) FROM calculations WHERE user_id = $1',
-      [req.user.user_id]
+      [req.user.id]
     );
 
     res.json({
@@ -385,7 +386,7 @@ app.delete('/api/calculations/:id', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
       'DELETE FROM calculations WHERE id = $1 AND user_id = $2 RETURNING id',
-      [id, req.user.user_id]
+      [id, req.user.id]
     );
 
     if (result.rows.length === 0) {
@@ -409,7 +410,7 @@ app.post('/api/game/high-score', authenticateToken, async (req, res) => {
     const result = await pool.query(
       `INSERT INTO high_scores (user_id, score, created_at)
        VALUES ($1, $2, NOW()) RETURNING *`,
-      [req.user.user_id, score]
+      [req.user.id, score]
     );
 
     res.status(201).json(result.rows[0]);
@@ -427,8 +428,7 @@ app.get('/api/game/leaderboard', async (req, res) => {
     const result = await pool.query(
       `SELECT u.username, h.score, h.created_at
        FROM high_scores h
-       JOIN users u ON h.user_id = u.id
-       ORDER BY h.score DESC
+       JOIN users u ON h.user_id = u.user_id       ORDER BY h.score DESC
        LIMIT $1`,
       [limit]
     );
@@ -447,7 +447,7 @@ app.get('/api/game/my-best', authenticateToken, async (req, res) => {
       `SELECT MAX(score) as best_score, COUNT(*) as games_played
        FROM high_scores
        WHERE user_id = $1`,
-      [req.user.user_id]
+      [req.user.id]
     );
 
     res.json(result.rows[0]);
@@ -467,7 +467,7 @@ app.get('/api/export/history/csv', authenticateToken, async (req, res) => {
        FROM calculations
        WHERE user_id = $1
        ORDER BY created_at DESC`,
-      [req.user.user_id]
+      [req.user.id]
     );
 
     // Create CSV
@@ -494,7 +494,7 @@ app.get('/api/export/history/json', authenticateToken, async (req, res) => {
       `SELECT * FROM calculations
        WHERE user_id = $1
        ORDER BY created_at DESC`,
-      [req.user.user_id]
+      [req.user.id]
     );
 
     res.setHeader('Content-Type', 'application/json');
