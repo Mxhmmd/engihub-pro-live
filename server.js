@@ -10,7 +10,7 @@ const crypto = require('crypto');
 // --- Import route files first ---
 const usersRoutes = require('./routes/users');
 const calculationsRoutes = require('./routes/calculations');
-const highScoreRoutes = require('./routes/high_score');
+const highScoreRoutes = require('./routes/high_scores');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,7 +32,7 @@ app.get('/health', (req, res) => {
 // --- Mount route handlers after import ---
 app.use('/api/users', usersRoutes);
 app.use('/api/calculations', calculationsRoutes);
-app.use('/api/high_score', highScoreRoutes);
+app.use('/api/high_scores', highScoreRoutes);
 
 // PostgreSQL Connection Pool
 const pool = new Pool({
@@ -437,7 +437,7 @@ app.post('/api/game/high-score', authenticateToken, async (req, res) => {
 
   try {
     const result = await pool.query(
-      `INSERT INTO high_scores (user_id, score, created_at)
+      `INSERT INTO high_scoress (user_id, score, created_at)
        VALUES ($1, $2, NOW()) RETURNING *`,
       [req.user.id, score]
     );
@@ -456,7 +456,7 @@ app.get('/api/game/leaderboard', async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT u.username, h.score, h.created_at
-       FROM high_scores h
+       FROM high_scoress h
        JOIN users u ON h.user_id = u.user_id       ORDER BY h.score DESC
        LIMIT $1`,
       [limit]
@@ -474,7 +474,7 @@ app.get('/api/game/my-best', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT MAX(score) as best_score, COUNT(*) as games_played
-       FROM high_scores
+       FROM high_scoress
        WHERE user_id = $1`,
       [req.user.id]
     );
@@ -543,11 +543,11 @@ app.get('/api/health', (req, res) => {
 
 const usersRouter = require('./routes/users');           // adjust path if needed
 const calculationsRouter = require('./routes/calculations');
-const highScoreRouter = require('./routes/high_score');
+const highScoreRouter = require('./routes/high_scores');
 
 app.use('/api/users', usersRouter);
 app.use('/api/calculations', calculationsRouter);
-app.use('/api/high_score', highScoreRouter);
+app.use('/api/high_scores', highScoreRouter);
 
 // GET all users
 app.get('/api/users', async (req, res) => {
@@ -571,9 +571,9 @@ app.get('/api/calculations', async (req, res) => {
 });
 
 // GET all high scores
-app.get('/api/high_score', async (req, res) => {
+app.get('/api/high_scores', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM high_score');
+    const result = await pool.query('SELECT * FROM high_scores');
     res.json(result.rows);
   } catch (error) {
     console.error(error);
