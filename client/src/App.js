@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Calculator, Zap, Box, Grid3x3, Gamepad2, User, Settings, Moon, Sun, Download, History, LogOut, Menu, X, Trophy } from 'lucide-react';
 import * as math from 'mathjs';
 
@@ -1364,15 +1364,16 @@ const PongGame = ({ theme, onSaveScore }) => {
 
 
     const handleKeyDown = useCallback((e) => {
-    const state = gameStateRef.current;
-    if (e.key === 'ArrowUp') state.player.dy = -6;
-    if (e.key === 'ArrowDown') state.player.dy = 6;
-  }, []);
+  const state = gameStateRef.current;
+  if (e.key === 'ArrowUp') state.player.dy = -6;
+  if (e.key === 'ArrowDown') state.player.dy = 6;
+}, []);
 
-  const handleKeyUp = useCallback((e) => {
-    const state = gameStateRef.current;
-    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') state.player.dy = 0;
-  }, []);
+const handleKeyUp = useCallback((e) => {
+  const state = gameStateRef.current;
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') state.player.dy = 0;
+}, []);
+
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
