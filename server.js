@@ -15,6 +15,12 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// --- Mount route handlers ---
+app.use('/api/users', usersRoutes);
+app.use('/api/calculations', calculationsRoutes);
+app.use('/api/high_score', highScoreRoutes);
+
+
 // PostgreSQL Connection Pool
 const pool = new Pool({
   user: process.env.DB_USER || 'postgres',
@@ -23,6 +29,11 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
 });
+
+// --- Import route files ---
+const usersRoutes = require('./routes/users');
+const calculationsRoutes = require('./routes/calculations');
+const highScoreRoutes = require('./routes/high_score');
 
 // --- Add this root route ---
 app.get('/', (req, res) => {
