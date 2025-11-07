@@ -1365,8 +1365,6 @@ const PongGame = ({ theme, onSaveScore }) => {
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') state.player.dy = 0;
   };
 
-const handleKeyDown = useCallback((e) => { ... }, []);
-const handleKeyUp = useCallback((e) => { ... }, []);
 
 useEffect(() => {
   window.addEventListener('keydown', handleKeyDown);
