@@ -19,6 +19,11 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+app.get('/ping', (req, res) => {
+  res.send('pong');
+});
+
+
 // --- Mount route handlers after import ---
 app.use('/api/users', usersRoutes);
 app.use('/api/calculations', calculationsRoutes);
