@@ -93,26 +93,27 @@ const EngineeringApp = () => {
   });
 
 
-  useEffect(() => {
-    const token = sessionStorage.getItem('token');
-    if (token) {
-      loadUserProfile();
-    }
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    setTheme(savedTheme);
-  }, []);
+  useEffect(() => { 
+  const token = sessionStorage.getItem('token');
+  if (token) {
+    loadUserProfile();
+  }
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  setTheme(savedTheme);
+}, [loadUserProfile]);
+
 
   // ADD THIS NEW CODE HERE:
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    
-    if (token) {
-      // Clear the token from URL immediately to prevent re-runs
-      window.history.replaceState({}, document.title, window.location.pathname);
-      handleEmailVerification(token);
-    }
-  }, []);
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+  
+  if (token) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+    handleEmailVerification(token);
+  }
+}, [handleEmailVerification]);
+
 
   const handleEmailVerification = async (token) => {
     setLoading(true);
@@ -1283,8 +1284,9 @@ const PongGame = ({ theme, onSaveScore }) => {
   });
 
   useEffect(() => {
-    loadLeaderboard();
-  }, []);
+  loadLeaderboard();
+}, [loadLeaderboard]);
+
 
   const loadLeaderboard = async () => {
     try {
@@ -1296,16 +1298,19 @@ const PongGame = ({ theme, onSaveScore }) => {
   };
 
   useEffect(() => {
-    if (!gameStarted || gameOver) return;
-    
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    let animationId;
-    
-    const gameLoop = () => {
-      const state = gameStateRef.current;
+  if (!gameStarted || gameOver) return;
+  
+  const canvas = canvasRef.current;
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  let animationId;
+  
+  const gameLoop = () => { ... }
+
+  // start game loop logic...
+}, [gameStarted, gameOver]);
+
       
       ctx.fillStyle = theme === 'dark' ? '#1F2937' : '#F3F4F6';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1411,14 +1416,18 @@ const PongGame = ({ theme, onSaveScore }) => {
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') state.player.dy = 0;
   };
 
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
+const handleKeyDown = useCallback((e) => { ... }, []);
+const handleKeyUp = useCallback((e) => { ... }, []);
+
+useEffect(() => {
+  window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('keyup', handleKeyUp);
+  return () => {
+    window.removeEventListener('keydown', handleKeyDown);
+    window.removeEventListener('keyup', handleKeyUp);
+  };
+}, [handleKeyDown, handleKeyUp]);
+
 
   const resetGame = () => {
     setGameStarted(false);
