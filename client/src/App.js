@@ -1299,17 +1299,33 @@ const PongGame = ({ theme, onSaveScore }) => {
 
   useEffect(() => {
   if (!gameStarted || gameOver) return;
-  
+
   const canvas = canvasRef.current;
   if (!canvas) return;
-  
+
   const ctx = canvas.getContext('2d');
   let animationId;
-  
-  const gameLoop = () => { ... }
 
-  // start game loop logic...
+  // Game loop function
+  const gameLoop = () => {
+    // TODO: Add actual game rendering and update logic here
+    // Example:
+    // ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // drawPlayer();
+    // updateGameState();
+
+    animationId = requestAnimationFrame(gameLoop);
+  };
+
+  // Start the loop
+  animationId = requestAnimationFrame(gameLoop);
+
+  // Cleanup when component unmounts or dependencies change
+  return () => {
+    cancelAnimationFrame(animationId);
+  };
 }, [gameStarted, gameOver]);
+
 
       
       ctx.fillStyle = theme === 'dark' ? '#1F2937' : '#F3F4F6';
