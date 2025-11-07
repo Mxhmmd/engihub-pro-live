@@ -534,6 +534,40 @@ app.use('/api/users', usersRouter);
 app.use('/api/calculations', calculationsRouter);
 app.use('/api/high_score', highScoreRouter);
 
+// GET all users
+app.get('/api/users', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM users');
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+// GET all calculations
+app.get('/api/calculations', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM calculations');
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch calculations' });
+  }
+});
+
+// GET all high scores
+app.get('/api/high_score', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM high_score');
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch high scores' });
+  }
+});
+
+
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
