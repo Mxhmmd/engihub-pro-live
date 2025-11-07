@@ -526,6 +526,14 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+const usersRouter = require('./routes/users');           // adjust path if needed
+const calculationsRouter = require('./routes/calculations');
+const highScoreRouter = require('./routes/high_score');
+
+app.use('/api/users', usersRouter);
+app.use('/api/calculations', calculationsRouter);
+app.use('/api/high_score', highScoreRouter);
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
