@@ -3,7 +3,7 @@ import { Calculator, Zap, Box, Grid3x3, Gamepad2, User, Settings, Moon, Sun, Dow
 import * as math from 'mathjs';
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 // API Service
 const api = {
