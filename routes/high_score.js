@@ -1,17 +1,18 @@
 // routes/high_score.js
 const express = require('express');
 const router = express.Router();
-const pool = require('../db'); // adjust if your pool is in another file
+const pool = require('../db');
 
-// GET all high_score
+// Get all high_score
 router.get('/', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM users');
+    const result = await pool.query('SELECT * FROM high_score');
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to fetch users' });
+    res.status(500).json({ error: 'Failed to fetch high scores' });
   }
 });
 
 module.exports = router;
+
